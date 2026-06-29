@@ -19,7 +19,7 @@ struct Mappers {
     ]
   }
 
-  static func mapFromBusinessStatus(_ status: GMSPlaceBusinessStatus) -> String? {
+  static func mapFromBusinessStatus(_ status: GMSPlacesBusinessStatus) -> String? {
     switch status {
     case .operational: return "OPERATIONAL"
     case .closedTemporarily: return "CLOSED_TEMPORARILY"
@@ -35,19 +35,17 @@ struct Mappers {
     ]
   }
 
-  static func mapFromPredictions(predictions: [GMSAutocompletePrediction]) -> [[String: Any]] {
-    predictions.map { pred in mapFromPrediction(prediction: pred)}
-  }
-
-  static func mapFromPrediction(prediction: GMSAutocompletePrediction) -> [String: Any] {
-    [
-      "primaryText": prediction.attributedPrimaryText.string,
-      "secondaryText": prediction.attributedSecondaryText?.string ?? "",
-      "fullText": prediction.attributedFullText.string,
-      "placeId": prediction.placeID,
-      "distance": prediction.distanceMeters ?? NSNull(),
-      "types": prediction.types,
-      "description": prediction.description
+  // New Places API autocomplete: each GMSAutocompleteSuggestion wraps a
+  // GMSPlaceSuggestion. Shapes the same dict the JS PlaceDetails/Place expects.
+  static func mapFromSuggestion(_ suggestion: GMSAutocompleteSuggestion) -> [String: Any]? {
+    guard let p = suggestion.placeSuggestion else { return nil }
+    return [
+      "primaryText": p.attributedPrimaryText?.string ?? "",
+      "secondaryText": p.attributedSecondaryText?.string ?? "",
+      "fullText": p.attributedFullText?.string ?? "",
+      "placeId": p.placeID ?? "",
+      "distance": p.distanceMeters ?? NSNull(),
+      "types": p.types ?? []
     ]
   }
 }

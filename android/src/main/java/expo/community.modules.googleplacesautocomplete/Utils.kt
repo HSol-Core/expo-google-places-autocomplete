@@ -5,15 +5,16 @@ import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.Place
 
 internal fun mapFromPlace(place: Place) = DiscoveredPlace(
-    name = place.name,
+    // New Places API getters (legacy name/latLng/address/phoneNumber are deprecated).
+    name = place.displayName,
     placeId = place.id,
-    coordinate = mapFromCoordinate(place.latLng),
-    formattedAddress = place.address,
+    coordinate = mapFromCoordinate(place.location),
+    formattedAddress = place.formattedAddress,
     addressComponents = place.addressComponents?.asList()?.map { it.name } ?: emptyList(),
     // BusinessStatus enum name matches the Web API strings (OPERATIONAL / CLOSED_TEMPORARILY / CLOSED_PERMANENTLY)
     businessStatus = place.businessStatus?.name,
     websiteUri = place.websiteUri?.toString(),
-    nationalPhoneNumber = place.phoneNumber
+    nationalPhoneNumber = place.nationalPhoneNumber
 )
 
 internal fun mapFromCoordinate(coordinate: LatLng?) = Coordinate(

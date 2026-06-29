@@ -57,15 +57,17 @@ class ExpoGooglePlacesAutocompleteModule : Module() {
     }
 
     private fun placeDetails(placeId: String, promise: Promise) {
+        // New Places API field enums (legacy NAME/LAT_LNG/ADDRESS/PHONE_NUMBER are
+        // deprecated and removed in v6.0).
         val placeFields = listOf(
             Place.Field.ID,
-            Place.Field.NAME,
-            Place.Field.LAT_LNG,
-            Place.Field.ADDRESS,
+            Place.Field.DISPLAY_NAME,
+            Place.Field.LOCATION,
+            Place.Field.FORMATTED_ADDRESS,
             Place.Field.ADDRESS_COMPONENTS,
             Place.Field.BUSINESS_STATUS,
             Place.Field.WEBSITE_URI,
-            Place.Field.PHONE_NUMBER
+            Place.Field.NATIONAL_PHONE_NUMBER
         )
 
         val request = FetchPlaceRequest.newInstance(placeId, placeFields)

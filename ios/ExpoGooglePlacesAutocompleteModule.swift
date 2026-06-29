@@ -1,95 +1,66 @@
 import ExpoModulesCore
 import GooglePlaces
 
-struct PlacesAutocompleteContext {
-  let promise: Promise
-  let placesDelegate: PlacesDelegate
-}
-
-public class ExpoGooglePlacesAutocompleteModule: Module, PlacesResultHandler {
-  private var currentContext: PlacesAutocompleteContext?
-  private var fetcher: GMSAutocompleteFetcher!
-  private let token = GMSAutocompleteSessionToken.init()
-  private let filter = GMSAutocompleteFilter()
-
+public class ExpoGooglePlacesAutocompleteModule: Module {
   public func definition() -> ModuleDefinition {
     Name("ExpoGooglePlacesAutocomplete")
 
-    OnCreate {
-      fetcher = GMSAutocompleteFetcher(filter: filter)
-      fetcher.provide(token)
-    }
-
     Function("initPlaces") { (apiKey: String) in
-      // GMSPlacesClient.provideAPIKey touches main-thread-only state; calling it
-      // synchronously on the JS thread (New Architecture / bridgeless) raises an
-      // Obj-C exception that surfaces as "Exception in HostFunction". Hop to the
-      // main queue. The JS Function still returns immediately.
+      // provideAPIKey touches main-thread-only state; calling it synchronously on
+      // the JS thread (New Architecture) raised an Obj-C exception surfacing as
+      // "Exception in HostFunction". Hop to main; the JS Function still returns
+      // immediately.
       DispatchQueue.main.async {
         GMSPlacesClient.provideAPIKey(apiKey)
       }
     }
 
+    // New Places API: fetchAutocompleteSuggestions(from:) replaces the deprecated
+    // GMSAutocompleteFetcher.
     AsyncFunction("findPlaces") { (query: String, config: RequestConfig?, promise: Promise) in
-      findPlaces(from: query, config: config, promise: promise)
+      let filter = GMSAutocompleteFilter()
+      if let countries = config?.countries, !countries.isEmpty {
+        filter.countries = countries
+      }
+      let request = GMSAutocompleteRequest(query: query)
+      request.filter = filter
+
+      GMSPlacesClient.shared().fetchAutocompleteSuggestions(from: request) { suggestions, error in
+        if let error {
+          promise.reject(error)
+          return
+        }
+        let places = (suggestions ?? []).compactMap { Mappers.mapFromSuggestion($0) }
+        promise.resolve(["places": places])
+      }
     }.runOnQueue(.main)
 
+    // New Places API: fetchPlace(with:) + GMSFetchPlaceRequest replace the
+    // deprecated fetchPlace(fromPlaceID:placeFields:sessionToken:callback:).
     AsyncFunction("placeDetails") { (id: String, promise: Promise) in
-      placeDetails(id: id, promise: promise)
-    }
-  }
+      let properties: [String] = [
+        GMSPlacePropertyPlaceID,
+        GMSPlacePropertyName,
+        GMSPlacePropertyCoordinate,
+        GMSPlacePropertyFormattedAddress,
+        GMSPlacePropertyAddressComponents,
+        GMSPlacePropertyBusinessStatus,
+        GMSPlacePropertyWebsite,
+        GMSPlacePropertyPhoneNumber,
+      ]
+      let request = GMSFetchPlaceRequest(placeID: id, placeProperties: properties)
 
-  private func findPlaces(from query: String, config: RequestConfig?, promise: Promise) {
-    let placesDelegate = PlacesDelegate(resultHandler: self)
-    fetcher.delegate = placesDelegate
-
-    currentContext = PlacesAutocompleteContext(promise: promise, placesDelegate: placesDelegate)
-    filter.countries = config?.countries ?? []
-    fetcher.sourceTextHasChanged(query)
-  }
-
-  private func placeDetails(id: String, promise: Promise) {
-    let fields: GMSPlaceField = GMSPlaceField(rawValue: UInt(GMSPlaceField.name.rawValue) |
-                                              UInt(GMSPlaceField.placeID.rawValue) |
-                                              UInt(GMSPlaceField.coordinate.rawValue) |
-                                              UInt(GMSPlaceField.formattedAddress.rawValue) |
-                                              UInt(GMSPlaceField.addressComponents.rawValue) |
-                                              UInt(GMSPlaceField.businessStatus.rawValue) |
-                                              UInt(GMSPlaceField.website.rawValue) |
-                                              UInt(GMSPlaceField.phoneNumber.rawValue)
-    )
-
-    GMSPlacesClient.shared().fetchPlace(fromPlaceID: id, placeFields: fields, sessionToken: nil) { place, error in
-      if let error {
-        promise.reject(error)
-        return
+      GMSPlacesClient.shared().fetchPlace(with: request) { place, error in
+        if let error {
+          promise.reject(error)
+          return
+        }
+        if let place {
+          promise.resolve(Mappers.mapFromPlace(place: place))
+        } else {
+          promise.resolve()
+        }
       }
-
-      if let place {
-        let result = Mappers.mapFromPlace(place: place)
-        promise.resolve(result)
-      } else {
-        promise.resolve()
-      }
-    }
-  }
-
-  func didAutocomplete(with predictions: [GMSAutocompletePrediction]) {
-    guard let promise = self.currentContext?.promise else {
-      log.error("PlacesContext has been lost.")
-      return
-    }
-
-    self.currentContext = nil
-
-    let results = Mappers.mapFromPredictions(predictions: predictions)
-    promise.resolve([
-      "places": results
-    ])
-  }
-
-  func didFailAutocompleteWithError(_ error: Error) {
-    self.currentContext?.promise.resolve(["places": []])
-    self.currentContext = nil
+    }.runOnQueue(.main)
   }
 }
