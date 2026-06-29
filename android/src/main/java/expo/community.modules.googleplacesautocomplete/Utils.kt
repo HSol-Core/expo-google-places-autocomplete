@@ -28,7 +28,9 @@ internal fun mapFromPrediction(prediction: AutocompletePrediction) = PlaceDetail
     fullText = prediction.getFullText(null).toString(),
     placeId = prediction.placeId,
     distance = prediction.distanceMeters,
-    types = prediction.placeTypes.map { it.name }
+    // New Places API: AutocompletePrediction.getTypes() returns List<String>
+    // (the old enum-typed getPlaceTypes() is gone). Field is unused downstream.
+    types = prediction.types
 )
 
 

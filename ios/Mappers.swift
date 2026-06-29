@@ -40,12 +40,14 @@ struct Mappers {
   static func mapFromSuggestion(_ suggestion: GMSAutocompleteSuggestion) -> [String: Any]? {
     guard let p = suggestion.placeSuggestion else { return nil }
     return [
-      "primaryText": p.attributedPrimaryText?.string ?? "",
+      // attributedPrimaryText / attributedFullText are non-optional NSAttributedString
+      // in the New Places API; only attributedSecondaryText is nullable.
+      "primaryText": p.attributedPrimaryText.string,
       "secondaryText": p.attributedSecondaryText?.string ?? "",
-      "fullText": p.attributedFullText?.string ?? "",
-      "placeId": p.placeID ?? "",
+      "fullText": p.attributedFullText.string,
+      "placeId": p.placeID,
       "distance": p.distanceMeters ?? NSNull(),
-      "types": p.types ?? []
+      "types": p.types
     ]
   }
 }

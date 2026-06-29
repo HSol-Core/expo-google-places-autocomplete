@@ -38,17 +38,23 @@ public class ExpoGooglePlacesAutocompleteModule: Module {
     // New Places API: fetchPlace(with:) + GMSFetchPlaceRequest replace the
     // deprecated fetchPlace(fromPlaceID:placeFields:sessionToken:callback:).
     AsyncFunction("placeDetails") { (id: String, promise: Promise) in
-      let properties: [String] = [
-        GMSPlacePropertyPlaceID,
-        GMSPlacePropertyName,
-        GMSPlacePropertyCoordinate,
-        GMSPlacePropertyFormattedAddress,
-        GMSPlacePropertyAddressComponents,
-        GMSPlacePropertyBusinessStatus,
-        GMSPlacePropertyWebsite,
-        GMSPlacePropertyPhoneNumber,
+      let properties: [GMSPlaceProperty] = [
+        .placeID,
+        .name,
+        .coordinate,
+        .formattedAddress,
+        .addressComponents,
+        .businessStatus,
+        .website,
+        .phoneNumber,
       ]
-      let request = GMSFetchPlaceRequest(placeID: id, placeProperties: properties)
+      // GMSFetchPlaceRequest's designated init takes the property keys as their
+      // underlying String rawValues and a (nullable) billing session token.
+      let request = GMSFetchPlaceRequest(
+        placeID: id,
+        placeProperties: properties.map { $0.rawValue },
+        sessionToken: nil
+      )
 
       GMSPlacesClient.shared().fetchPlace(with: request) { place, error in
         if let error {
