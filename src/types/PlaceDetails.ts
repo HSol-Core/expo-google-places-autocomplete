@@ -9,4 +9,10 @@ export interface PlaceDetails {
   coordinate: Coordinate;
   formattedAddress?: string;
   addressComponents: string[];
+  /** OPERATIONAL | CLOSED_TEMPORARILY | CLOSED_PERMANENTLY (undefined if unknown). */
+  businessStatus?: string;
+  /** The place's website, if Google has one. */
+  websiteUri?: string;
+  /** Phone number in the place's national format, if available. */
+  nationalPhoneNumber?: string;
 }

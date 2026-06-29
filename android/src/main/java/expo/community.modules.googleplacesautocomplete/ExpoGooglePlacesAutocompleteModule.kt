@@ -62,7 +62,10 @@ class ExpoGooglePlacesAutocompleteModule : Module() {
             Place.Field.NAME,
             Place.Field.LAT_LNG,
             Place.Field.ADDRESS,
-            Place.Field.ADDRESS_COMPONENTS
+            Place.Field.ADDRESS_COMPONENTS,
+            Place.Field.BUSINESS_STATUS,
+            Place.Field.WEBSITE_URI,
+            Place.Field.PHONE_NUMBER
         )
 
         val request = FetchPlaceRequest.newInstance(placeId, placeFields)

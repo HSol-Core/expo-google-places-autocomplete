@@ -21,7 +21,13 @@ public class ExpoGooglePlacesAutocompleteModule: Module, PlacesResultHandler {
     }
 
     Function("initPlaces") { (apiKey: String) in
-      GMSPlacesClient.provideAPIKey(apiKey)
+      // GMSPlacesClient.provideAPIKey touches main-thread-only state; calling it
+      // synchronously on the JS thread (New Architecture / bridgeless) raises an
+      // Obj-C exception that surfaces as "Exception in HostFunction". Hop to the
+      // main queue. The JS Function still returns immediately.
+      DispatchQueue.main.async {
+        GMSPlacesClient.provideAPIKey(apiKey)
+      }
     }
 
     AsyncFunction("findPlaces") { (query: String, config: RequestConfig?, promise: Promise) in
@@ -47,7 +53,10 @@ public class ExpoGooglePlacesAutocompleteModule: Module, PlacesResultHandler {
                                               UInt(GMSPlaceField.placeID.rawValue) |
                                               UInt(GMSPlaceField.coordinate.rawValue) |
                                               UInt(GMSPlaceField.formattedAddress.rawValue) |
-                                              UInt(GMSPlaceField.addressComponents.rawValue)
+                                              UInt(GMSPlaceField.addressComponents.rawValue) |
+                                              UInt(GMSPlaceField.businessStatus.rawValue) |
+                                              UInt(GMSPlaceField.website.rawValue) |
+                                              UInt(GMSPlaceField.phoneNumber.rawValue)
     )
 
     GMSPlacesClient.shared().fetchPlace(fromPlaceID: id, placeFields: fields, sessionToken: nil) { place, error in

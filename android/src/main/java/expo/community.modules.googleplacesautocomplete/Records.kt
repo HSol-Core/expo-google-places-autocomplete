@@ -38,7 +38,13 @@ data class DiscoveredPlace(
     @Field
     val formattedAddress: String?,
     @Field
-    val addressComponents: List<String>?
+    val addressComponents: List<String>?,
+    @Field
+    val businessStatus: String?,
+    @Field
+    val websiteUri: String?,
+    @Field
+    val nationalPhoneNumber: String?
 ) : Record
 
 data class Coordinate(

@@ -9,7 +9,11 @@ internal fun mapFromPlace(place: Place) = DiscoveredPlace(
     placeId = place.id,
     coordinate = mapFromCoordinate(place.latLng),
     formattedAddress = place.address,
-    addressComponents = place.addressComponents?.asList()?.map { it.name } ?: emptyList()
+    addressComponents = place.addressComponents?.asList()?.map { it.name } ?: emptyList(),
+    // BusinessStatus enum name matches the Web API strings (OPERATIONAL / CLOSED_TEMPORARILY / CLOSED_PERMANENTLY)
+    businessStatus = place.businessStatus?.name,
+    websiteUri = place.websiteUri?.toString(),
+    nationalPhoneNumber = place.phoneNumber
 )
 
 internal fun mapFromCoordinate(coordinate: LatLng?) = Coordinate(

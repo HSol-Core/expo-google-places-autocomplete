@@ -1,7 +1,7 @@
 {
   "name": "expo-google-places-autocomplete",
-  "version": "1.2.0",
-  "description": "Google Places Autocomplete for React Native",
+  "version": "1.2.0-bugo.1",
+  "description": "Google Places Autocomplete for React Native (Bugo fork: business/website/phone fields + iOS New-Arch initPlaces fix)",
   "main": "build/ExpoGooglePlacesAutocomplete.js",
   "types": "build/ExpoGooglePlacesAutocomplete.d.ts",
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "expo-module lint",
     "test": "expo-module test",
     "copy-files": "copyfiles -u 1 src/assets/* build/",
-    "prepare": "expo-module prepare && yarn copy-files",
+    "prepare": "expo-module prepare && npm run copy-files",
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module",
     "open:ios": "xed example/ios",
@@ -25,13 +25,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/alanjhughes/expo-google-places-autocomplete",
+  "repository": "https://github.com/HSol-Core/expo-google-places-autocomplete",
   "bugs": {
-    "url": "https://github.com/alanjhughes/expo-google-places-autocomplete/issues"
+    "url": "https://github.com/HSol-Core/expo-google-places-autocomplete/issues"
   },
   "author": "Alan Hughes <hughesno1@gmail.com> (https://github.com/alanjhughes)",
   "license": "MIT",
-  "homepage": "https://github.com/alanjhughes/expo-google-places-autocomplete#readme",
+  "homepage": "https://github.com/HSol-Core/expo-google-places-autocomplete#readme",
   "dependencies": {},
   "devDependencies": {
     "@types/react": "^18.0.25",

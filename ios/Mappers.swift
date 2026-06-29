@@ -12,8 +12,20 @@ struct Mappers {
         comp.map {
           $0.name
         }
-      }) ?? []
+      }) ?? [],
+      "businessStatus": Mappers.mapFromBusinessStatus(place.businessStatus),
+      "websiteUri": place.website?.absoluteString,
+      "nationalPhoneNumber": place.phoneNumber
     ]
+  }
+
+  static func mapFromBusinessStatus(_ status: GMSPlaceBusinessStatus) -> String? {
+    switch status {
+    case .operational: return "OPERATIONAL"
+    case .closedTemporarily: return "CLOSED_TEMPORARILY"
+    case .closedPermanently: return "CLOSED_PERMANENTLY"
+    default: return nil
+    }
   }
 
   static func mapFromCoordinate(coordinate: CLLocationCoordinate2D) -> [String: Any] {

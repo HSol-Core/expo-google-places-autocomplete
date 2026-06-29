@@ -1,0 +1,1 @@
+{"version":3,"file":"Coordinate.js","sourceRoot":"","sources":["../../src/types/Coordinate.ts"],"names":[],"mappings":"AAAA;;GAEG","sourcesContent":["/**\n * The latitude and longitude of the selected place\n */\n\nexport interface Coordinate {\n  latitude: number;\n  longitude: number;\n}\n"]}
