@@ -44,7 +44,7 @@ if (useManagedAndroidSdkVersions) {
 
     dependencies {
       implementation project(':expo-modules-core')
-      implementation 'com.google.android.libraries.places:places:2.5.0'
+      implementation 'com.google.android.libraries.places:places:5.1.1'
     }
   }
 }

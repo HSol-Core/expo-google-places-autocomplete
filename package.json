@@ -1,7 +1,7 @@
 {
   "name": "expo-google-places-autocomplete",
-  "version": "1.2.0-bugo.1",
-  "description": "Google Places Autocomplete for React Native (Bugo fork: business/website/phone fields + iOS New-Arch initPlaces fix)",
+  "version": "1.2.0-bugo.2",
+  "description": "Google Places Autocomplete for React Native (Bugo fork: business/website/phone fields, iOS New-Arch initPlaces fix, latest Google SDKs)",
   "main": "build/ExpoGooglePlacesAutocomplete.js",
   "types": "build/ExpoGooglePlacesAutocomplete.d.ts",
   "scripts": {
