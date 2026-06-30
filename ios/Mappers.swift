@@ -2,20 +2,31 @@ import GooglePlaces
 
 struct Mappers {
 
+  // GMS declares many of these properties nonnull, but the Obj-C runtime can
+  // still hand back nil at runtime. Reading a nonnull-that's-nil via the Swift
+  // property accessor TRAPS — and in optimized Release builds it crashes hard
+  // (this is the "Places search crashes on the 3rd character" bug). KVC
+  // (`value(forKey:)`) returns an Optional safely, so a missing field degrades
+  // to a default instead of crashing. These helpers funnel every potentially-nil
+  // read through KVC.
+  private static func string(_ obj: NSObject, _ key: String) -> String? {
+    obj.value(forKey: key) as? String
+  }
+  private static func attrString(_ obj: NSObject, _ key: String) -> String? {
+    (obj.value(forKey: key) as? NSAttributedString)?.string
+  }
+
   static func mapFromPlace(place: GMSPlace) -> [String: Any?] {
-    [
-      "name": place.name,
-      "placeId": place.placeID,
+    let components = (place.value(forKey: "addressComponents") as? [GMSAddressComponent]) ?? []
+    return [
+      "name": Mappers.string(place, "name"),
+      "placeId": Mappers.string(place, "placeID"),
       "coordinate": Mappers.mapFromCoordinate(coordinate: place.coordinate),
-      "formattedAddress": place.formattedAddress,
-      "addressComponents": place.addressComponents.map({ comp in
-        comp.map {
-          $0.name
-        }
-      }) ?? [],
+      "formattedAddress": Mappers.string(place, "formattedAddress"),
+      "addressComponents": components.compactMap { $0.value(forKey: "name") as? String },
       "businessStatus": Mappers.mapFromBusinessStatus(place.businessStatus),
-      "websiteUri": place.website?.absoluteString,
-      "nationalPhoneNumber": place.phoneNumber
+      "websiteUri": (place.value(forKey: "website") as? URL)?.absoluteString,
+      "nationalPhoneNumber": Mappers.string(place, "phoneNumber")
     ]
   }
 
@@ -36,18 +47,17 @@ struct Mappers {
   }
 
   // New Places API autocomplete: each GMSAutocompleteSuggestion wraps a
-  // GMSPlaceSuggestion. Shapes the same dict the JS PlaceDetails/Place expects.
+  // GMSAutocompletePlaceSuggestion. All reads are nil-safe (see note above).
   static func mapFromSuggestion(_ suggestion: GMSAutocompleteSuggestion) -> [String: Any]? {
     guard let p = suggestion.placeSuggestion else { return nil }
+    guard let placeId = Mappers.string(p, "placeID"), !placeId.isEmpty else { return nil }
     return [
-      // attributedPrimaryText / attributedFullText are non-optional NSAttributedString
-      // in the New Places API; only attributedSecondaryText is nullable.
-      "primaryText": p.attributedPrimaryText.string,
-      "secondaryText": p.attributedSecondaryText?.string ?? "",
-      "fullText": p.attributedFullText.string,
-      "placeId": p.placeID,
-      "distance": p.distanceMeters ?? NSNull(),
-      "types": p.types
+      "primaryText": Mappers.attrString(p, "attributedPrimaryText") ?? "",
+      "secondaryText": Mappers.attrString(p, "attributedSecondaryText") ?? "",
+      "fullText": Mappers.attrString(p, "attributedFullText") ?? "",
+      "placeId": placeId,
+      "distance": (p.value(forKey: "distanceMeters") as? NSNumber) ?? NSNull(),
+      "types": (p.value(forKey: "types") as? [String]) ?? []
     ]
   }
 }
